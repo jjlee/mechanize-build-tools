@@ -1,0 +1,26 @@
+
+div.log {
+    border: black 1px solid;
+    padding: 2px;
+    margin: 1px;
+}
+
+.result_success {
+    background-color: #8fdf5f;
+}
+
+.result_failure {
+    background-color: #e98080;
+}
+
+table.summary td {
+    vertical-align: top;
+}
+
+.time {
+    font-size: small;
+}
+
+table.short_results div.log {
+   display: inline;
+}
