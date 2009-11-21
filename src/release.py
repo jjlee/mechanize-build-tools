@@ -105,16 +105,6 @@ class NullWrapper(object):
         return self._env.cmd(["true"], **kwargs)
 
 
-# class CommandFailedError(cmd_env.CommandFailedError):
-
-#     def __init__(self, message, stderr, rc):
-#         cmd_env.CommandFailedError.__init__(self, message, rc)
-#         self.stderr = stderr
-
-#     def __str__(self):
-#         return "%s:\n%s" % (self._message, self.stderr)
-
-
 def get_cmd_stdout(env, args, **kwargs):
     child = env.cmd(args, do_wait=False, stdout=subprocess.PIPE, **kwargs)
     stdout, stderr = child.communicate()
