@@ -1,0 +1,16 @@
+Support code for making mechanize releases / maintaining website
+
+Probably of no use to anybody but me.
+
+This provides the support code used by mechanize/release_mechanize.py
+(from http://github.com/jjlee/mechanize).  That script expects all of
+the top-level directories to be on sys.path:
+
+top=/path/to/mechanize-build-tools
+pythonpath="$top"/src:"$top"/in-chroot:"$top"/plash-build-tools
+if [ -n "$PYTHONPATH" ]
+  then
+    export PYTHONPATH="$pythonpath":"$PYTHONPATH"
+  else
+    export PYTHONPATH="$pythonpath"
+fi
