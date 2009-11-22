@@ -12,7 +12,7 @@ import cmd_env
 
 class Page(object):
 
-    def __init__(self, name, title=None, url=None, child=None):
+    def __init__(self, name, title=None, url=None, children=()):
         self.name = name
         if title is None:
             title = name
@@ -21,20 +21,16 @@ class Page(object):
             url = "../%s/" % name
         self.url = url
         self.is_child = False
-        self.child = None
-        if child is not None:
+        self._children = children
+        for child in children:
             child.is_child = True
-            self.child = child
-        self.is_current = False
+        self._current_page = None
 
     def set_current_page_name(self, name):
-        if name == self.name:
-            self.is_current = True
-        if self.child is not None:
-            self.child.set_current_page_name(name)
+        self._current_page = name
 
     def html(self):
-        if self.is_current:
+        if self._current_page == self.name:
             if self.is_child:
                 html = ('<span class="thispage"><span class="subpage">%s'
                         '</span></span><br>' % self.title)
@@ -46,8 +42,8 @@ class Page(object):
             else:
                 fmt = '<a href="%s">%s</a><br>'
             html = fmt % (self.url, self.title)
-        if self.child is not None:
-            html = html+"\n"+self.child.html()
+        for child in self._children:
+            html = html+"\n"+child.html()
         return html
 
 
@@ -70,24 +66,15 @@ def navbar(this_page_name=None):
              title="General FAQs", url="../bits/GeneralFAQ.html"),
         Sep(),
         Page("mechanize",
-             child=Page("ccdocs",
-                 title="mechanize docs", url="../mechanize/doc.html")),
-        Page("ClientForm"),
-        # Sep(),
-        # Page("ClientCookie",
-        #      child=Page("ccdocs",
-        #          title="ClientCookie docs", url="../ClientCookie/doc.html")),
-        # Page("pullparser"),
-        # Page("DOMForm"),
-        # Page("python-spidermonkey"),
-        # Page("ClientTable"),
-        # Page("urllib2",
-        #      title="1.5.2 urllib2.py", url="../bits/urllib2_152.py"),
-        # Page("urllib",
-        #      title="1.5.2 urllib.py", url="../bits/urllib_152.py"),
-##         Page(""),
-##         Page(""),
-##         Page(""),
+             children=[
+                Page("ccdocs",
+                     title="handlers etc.",
+                     url="../mechanize/doc.html"),
+                Page("forms",
+                     title="forms",
+                     url="../mechanize/forms.html"),
+                ],
+             ),
         ]
     html = []
     for page in pages:
