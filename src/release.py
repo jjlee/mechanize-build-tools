@@ -260,8 +260,12 @@ def read_file_from_env(env, filename):
 
 def ensure_installed(env, as_root_env, package_name, ppa=None):
     try:
-        env.cmd(["dpkg", "-s", package_name], stdout=open(os.devnull, "w"))
+        output = get_cmd_stdout(env, ["dpkg", "-s", package_name])
     except cmd_env.CommandFailedError:
+        installed = False
+    else:
+        installed = "Status: install ok installed" in output
+    if not installed:
         if ppa is not None:
             as_root_env.cmd(["add-apt-repository", "ppa:%s" % ppa])
             as_root_env.cmd(["apt-get", "update"])
