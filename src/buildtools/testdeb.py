@@ -185,14 +185,20 @@ exec "$@" > %(output_file)s
             sys.exit("Failed: output:\n" + output)
 
     @action_tree.action_node
-    def all(self):
+    def the_fast_bit(self):
         return [
-            self.install_deps,
-            self.create_chroot,
             self.clean,
             self.create_debian_repository,
             self.write_test_data,
             self.test,
+            ]
+
+    @action_tree.action_node
+    def all(self):
+        return [
+            self.install_deps,
+            self.create_chroot,
+            self.the_fast_bit,
             ]
 
 
