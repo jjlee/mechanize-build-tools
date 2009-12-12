@@ -30,8 +30,8 @@ def OutputToGzipFileEnv(env, filename):
 
 class PbuilderActions(object):
 
-    # def __init__(self, env, work_dir, deb_path, pbuilder="cowbuilder"):
-    def __init__(self, env, work_dir, deb_path, pbuilder="pbuilder"):
+    # def __init__(self, env, work_dir, get_deb_path, pbuilder="cowbuilder"):
+    def __init__(self, env, work_dir, get_deb_path, pbuilder="pbuilder"):
         self._env = env
         self._as_root = cmd_env.PrefixCmdEnv(["sudo"], env)
         self._work_dir = work_dir
@@ -46,7 +46,7 @@ class PbuilderActions(object):
         self._build_dir = os.path.join(self._work_dir, "build")
         self._in_test_dir = cmd_env.PrefixCmdEnv(
             cmd_env.in_dir(self._test_dir), self._env)
-        self._deb_path = deb_path
+        self._get_deb_path = get_deb_path
         self._pbuilder = pbuilder
         # self._pbuilder_args = ["--basepath", self._chroot_base,
         #                        "--buildplace", self._build_dir]
@@ -81,7 +81,7 @@ class PbuilderActions(object):
         arch = os.path.join(main, "binary-%s" % arch_code)
         in_repo.cmd(["mkdir", "-p", arch])
         in_repo.cmd(["mkdir", "-p", os.path.join(main, "source")])
-        self._env.cmd(["cp", self._deb_path,
+        self._env.cmd(["cp", self._get_deb_path(),
                        os.path.join(self._repo_dir, arch)])
         in_repo.cmd(cmd_env.write_file_cmd("apt-ftparchive.conf", """\
 Dir {
@@ -218,7 +218,7 @@ def parse_options(args):
 def main(argv):
     options, action_tree_args = parse_options(argv[1:])
     env = release.get_env_from_options(options)
-    actions = PbuilderActions(env, options.work_dir, options.deb_path)
+    actions = PbuilderActions(env, options.work_dir, lambda: options.deb_path)
     action_tree.action_main(actions.all, action_tree_args)
 
 
