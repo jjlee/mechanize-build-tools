@@ -163,10 +163,11 @@ exec "$@" > %(output_file)s
                  os.path.join(self._test_dir, "test.sh")]), self._as_root)
         test_env = release.CwdEnv(in_pbuilder, self._test_dir)
         self._test.run_test(test_env)
-        if self._test.verify(cmd_env.read_file(self._output_file)):
+        output = cmd_env.read_file(self._output_file)
+        if self._test.verify(output):
             print "OK"
         else:
-            sys.exit("FAIL")
+            sys.exit("FAIL: output:\n%s" % output)
 
     @action_tree.action_node
     def the_fast_bit(self):
