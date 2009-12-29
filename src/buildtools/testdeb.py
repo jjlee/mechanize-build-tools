@@ -1,14 +1,12 @@
 """%prog WORK_DIR DEBIAN_PACKAGE_FILE
 
 apt-get install and test a debian package in a reproducible chroot environment
-using pbuilder/cowbuilder.
+using pbuilder.
 
 TODO:
- * Stop hard-coding:
-   * the test
-   * repository key
-   * whether to use pbuilder or cowbuilder
+ * Put chroot in work dir (not in /var/cache/pbuilder)
  * Use linux32 as described in pbuilder docs
+ * Allow using cowbuilder
  * Run piuparts -a to test that purging works
    http://www.netfort.gr.jp/~dancer/software/pbuilder-doc/pbuilder-doc.html
 """
@@ -31,10 +29,12 @@ def OutputToGzipFileEnv(env, filename):
 class PbuilderActions(object):
 
     # def __init__(self, env, work_dir, get_deb_path, pbuilder="cowbuilder"):
-    def __init__(self, env, work_dir, get_deb_path, pbuilder="pbuilder"):
+    def __init__(self, env, work_dir, get_deb_path, pbuilder="pbuilder",
+                 test=lambda env: True):
         self._env = env
         self._as_root = cmd_env.PrefixCmdEnv(["sudo"], env)
         self._work_dir = work_dir
+        self._test = test
         self._bind_mount_dir = os.path.join(work_dir, "bind-mount")
         self._repo_dir = os.path.join(
             self._bind_mount_dir, "debian-repository")
@@ -46,8 +46,10 @@ class PbuilderActions(object):
         self._build_dir = os.path.join(self._work_dir, "build")
         self._in_test_dir = cmd_env.PrefixCmdEnv(
             cmd_env.in_dir(self._test_dir), self._env)
+        self._output_file = os.path.join(self._test_dir, "output")
         self._get_deb_path = get_deb_path
         self._pbuilder = pbuilder
+        # cowbuilder
         # self._pbuilder_args = ["--basepath", self._chroot_base,
         #                        "--buildplace", self._build_dir]
         self._pbuilder_args = ["--basetgz", self._chroot_base,
@@ -131,37 +133,14 @@ APT::FTPArchive::Release::Description "Custom debian packages for testdeb";
             "--create", ["--components", "main universe multiverse"])
         self._as_root.cmd(create)
 
-    def write_test_data(self, log):
-        self._in_test_dir.cmd(cmd_env.write_file_cmd(
-                "test.html",
-                """\
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
-    "http://www.w3.org/TR/html4/strict.dtd">
-<html>
-  <head><title>Title</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  </head>
-  <body>
-    <p>Hello, valid world.
-  </body>
-</html>
-"""))
-
-    def _test_cmd(self):
-        return ["w3c-validate", os.path.join(self._test_dir, "test.html")]
-
-    def _verify_output(self, output):
-        return output == "Result: This document is valid HTML 4.01 Strict\n"
-
-    def test(self, log):
+    def write_test_wrapper(self, log):
         self._in_test_dir.cmd(cmd_env.write_file_cmd(
                 "testrepo.list", """\
 deb file://%s custom main
 """ % os.path.abspath(self._repo_dir)))
         release.OutputToFileEnv(self._in_test_dir, "key").cmd(
             ["gpg", "--export", "--armor", "A362A9D1"])
-        deb_name = os.path.basename(self._deb_path).partition("_")[0]
-        output_file = os.path.join(self._test_dir, "output")
+        deb_name = os.path.basename(self._get_deb_path()).partition("_")[0]
         self._in_test_dir.cmd(cmd_env.write_file_cmd(
                 "test.sh",
                 """\
@@ -173,23 +152,28 @@ exec "$@" > %(output_file)s
 """ % dict(sources_list_file=os.path.join(self._test_dir, "testrepo.list"),
            deb_name=pipes.quote(deb_name),
            key_file=os.path.join(self._test_dir, "key"),
-           output_file=output_file)))
+           output_file=self._output_file)))
         self._in_test_dir.cmd(["chmod", "+x", "test.sh"])
-        self._as_root.cmd(self._pbuilder_cmd(
+
+    def test(self, log):
+        self._test.set_up(self._in_test_dir)
+        in_pbuilder = cmd_env.PrefixCmdEnv(self._pbuilder_cmd(
                 "--execute",
                 ["--bindmounts", os.path.abspath(self._bind_mount_dir), "--",
-                 os.path.join(self._test_dir, "test.sh")] + self._test_cmd()))
-        if self._verify_output(cmd_env.read_file(output_file)):
+                 os.path.join(self._test_dir, "test.sh")]), self._as_root)
+        test_env = release.CwdEnv(in_pbuilder, self._test_dir)
+        self._test.run_test(test_env)
+        if self._test.verify(cmd_env.read_file(self._output_file)):
             print "OK"
         else:
-            sys.exit("Failed: output:\n" + output)
+            sys.exit("FAIL")
 
     @action_tree.action_node
     def the_fast_bit(self):
         return [
             self.clean,
             self.create_debian_repository,
-            self.write_test_data,
+            self.write_test_wrapper,
             self.test,
             ]
 
