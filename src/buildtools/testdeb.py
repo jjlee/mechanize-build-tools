@@ -67,7 +67,7 @@ class PbuilderActions(object):
         ensure_installed("pbuilder")
 
     def clean(self, log):
-        self._env.cmd(["rm", "-rf", "--one-file-system", self._work_dir])
+        self._as_root.cmd(["rm", "-rf", "--one-file-system", self._work_dir])
         self._env.cmd(["mkdir", "-p", self._test_dir])
         self._env.cmd(["mkdir", "-p", self._build_dir])
         self._env.cmd(["mkdir", "-p", self._repo_dir])
