@@ -6,6 +6,7 @@ using pbuilder.
 TODO:
  * Put chroot in work dir (not in /var/cache/pbuilder)
  * Use linux32 as described in pbuilder docs
+ * Update chroot periodically
  * Allow using cowbuilder
  * Run piuparts -a to test that purging works
    http://www.netfort.gr.jp/~dancer/software/pbuilder-doc/pbuilder-doc.html
