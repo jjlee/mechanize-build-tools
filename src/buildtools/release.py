@@ -1,6 +1,5 @@
 import collections
 import doctest
-import os
 import pipes
 import re
 import subprocess
