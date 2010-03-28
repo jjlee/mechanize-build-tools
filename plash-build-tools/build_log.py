@@ -21,7 +21,6 @@ import subprocess
 import time
 
 from buildutils import remove_prefix
-import lxml.etree as etree
 
 
 class NodeStream(object):
@@ -73,10 +72,12 @@ class NodeWriter(object):
 class StreamReader(object):
 
     def __init__(self):
+        import lxml.etree as etree
         self._root_node = etree.Element("root")
         self._map = {"root": self._root_node}
 
     def process_line(self, line):
+        import lxml.etree as etree
         node_id, attr, arg = line.split(" ", 2)
         node = self._map[node_id]
         if attr == "add":
@@ -260,6 +261,7 @@ def flatten(val):
 
 
 def tagp(tag_name, attrs, *children):
+    import lxml.etree as etree
     element = etree.Element(tag_name)
     for key, value in attrs:
         element.attrib[key] = value
@@ -348,6 +350,7 @@ def format_top_log(log, path_mapper):
 
 
 def write_xml(fh, xml):
+    import lxml.etree as etree
     fh.write(etree.tostring(xml, pretty_print=True))
 
 
