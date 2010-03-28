@@ -268,7 +268,7 @@ def ensure_installed(env, as_root_env, package_name, ppa=None):
         if ppa is not None:
             as_root_env.cmd(["add-apt-repository", "ppa:%s" % ppa])
             as_root_env.cmd(["apt-get", "update"])
-        as_root_env.cmd(["apt-get", "install", package_name])
+        as_root_env.cmd(["apt-get", "install", "-y", package_name])
 
 
 def GitPagerWrapper(env):
