@@ -1,5 +1,6 @@
 import collections
 import doctest
+import os
 import pipes
 import re
 import subprocess
@@ -253,6 +254,18 @@ def empy(env, filename, defines=()):
         empy_cmd(filename, defines))
 
 
+def pandoc_cmd(filename, variables=()):
+    variables = sum([["-V", "%s=%s" % item] for item in variables], [])
+    return ["pandoc",
+            "--smart",
+            "--standalone",
+            "--template", "html.template"] + variables + [filename]
+
+
+def pandoc(env, filename, output_dir="html", variables=()):
+    html = os.path.join(output_dir, trim(filename, ".txt") + ".html")
+    return OutputToFileEnv(env, html).cmd(pandoc_cmd(filename, variables))
+
 def read_file_from_env(env, filename):
     return get_cmd_stdout(env, ["cat", filename])
 
@@ -284,9 +297,10 @@ def rm_rf_cmd(dir_path):
 
 
 # for use from doc templates
-def last_modified(path):
-    timestamp = get_cmd_stdout(GitPagerWrapper(cmd_env.BasicEnv()),
-                               last_modified_cmd(path))
+def last_modified(path, env=None):
+    if env is None:
+        env = GitPagerWrapper(cmd_env.BasicEnv())
+    timestamp = get_cmd_stdout(env, last_modified_cmd(path))
     if timestamp == "":
         # not tracked by git, return bogus time for convenience of testing
         # before committed
