@@ -6,81 +6,103 @@ import re
 import subprocess
 import sys
 import time
+import xml.sax.saxutils
 
 import cmd_env
 
 
+def tag(tag, *body):
+    return "<%s>" % tag, body, "</%s>" % tag
+
+
+def tagp(tag, attrs, *body):
+    attrs_part = "".join(" %s=%s" % (k, xml.sax.saxutils.quoteattr(v)) for
+                         k, v in attrs)
+    return "<%s%s>" % (tag, attrs_part), body, "</%s>" % tag
+
+
 class Page(object):
 
-    def __init__(self, name, title=None, url=None, children=()):
+    def __init__(self, name, url, title=None):
         self.name = name
         if title is None:
             title = name
-        self.title = title
-        if url is None:
-            url = "../%s/" % name
         self.url = url
-        self.is_child = False
-        self._children = children
-        for child in children:
-            child.is_child = True
-        self._current_page = None
+        self.title = title
+        self.children = []
 
-    def set_current_page_name(self, name):
-        self._current_page = name
-
-    def html(self):
-        if self._current_page == self.name:
-            if self.is_child:
-                html = ('<span class="thispage"><span class="subpage">%s'
-                        '</span></span><br>' % self.title)
-            else:
-                html = '<span class="thispage">%s</span><br>' % self.title
-        else:
-            if self.is_child:
-                fmt = '<a href="%s"><span class="subpage">%s</span></a><br>'
-            else:
-                fmt = '<a href="%s">%s</a><br>'
-            html = fmt % (self.url, self.title)
-        for child in self._children:
-            html = html+"\n"+child.html()
-        return html
+    def add(self, page):
+        self.children.append(page)
+        return page
 
 
-class Sep:
+def site_map():
+    # TODO: shuffle content around into hierarchy something like this
+    root = Page("Root", "/")
 
-    def __init__(self):
-        self.name = object()
+    home = root.add(Page("Home", "/mechanize/"))
+    download = root.add(Page("Download", "/mechanize/download.html"))
+    support = root.add(Page("Support", "/mechanize/docs/ChangeLog.txt"))
+    development = root.add(Page("Development", "/mechanize/todo.html"))
 
-    def set_current_page_name(self, name):
-        pass
+    support.add(Page("Changelog", "/mechanize/docs/ChangeLog.txt"))
+    docs = support.add(Page("Docs", "/mechanize/docs.html"))
 
-    def html(self):
-        return '<br>'
+    docs.add(Page("mechanize", "/mechanize/"))
+    docs.add(Page("GeneralFAQ", "/mechanize/GeneralFAQ.html",
+                  title="General FAQs"))
+    docs.add(Page("doc", "/mechanize/doc.html", title="handlers etc."))
+    docs.add(Page("forms", "/mechanize/forms.html"))
+
+    return root
 
 
-def navbar(this_page_name=None):
-    pages = [
-        Page("Home", url=".."),
-        Page("GeneralFAQ",
-             title="General FAQs", url="../bits/GeneralFAQ.html"),
-        Sep(),
-        Page("mechanize",
-             children=[
-                Page("ccdocs",
-                     title="handlers etc.",
-                     url="../mechanize/doc.html"),
-                Page("forms",
-                     title="forms",
-                     url="../mechanize/forms.html"),
-                ],
-             ),
-        ]
-    html = []
-    for page in pages:
-        page.set_current_page_name(this_page_name)
-        html.append(page.html())
-    return "\n".join(html)
+def find_page(site_map, name):
+    if site_map.name == name:
+        return site_map, []
+
+    for page in site_map.children:
+        try:
+            found, parents = find_page(page, name)
+        except ValueError:
+            continue
+
+        return found, parents + [page]
+
+    raise ValueError(name)
+
+
+def toc_link(current_page, page):
+    if page.url == current_page.url:
+        link = tagp("span", [("class", "thispage")], page.title)
+    else:
+        link = tagp("a", [("href", page.url)], page.title)
+    return link
+
+
+def toc_tag(current_page, page):
+    if len(page.children) == 0:
+        return toc_link(current_page, page)
+    else:
+        body = [tag("li", toc_tag(current_page, child))
+                for child in page.children]
+        return tagp("ul", [("id", "toc")], *body)
+
+
+def html(tags):
+    r = []
+    if isinstance(tags, basestring):
+        r.append(tags)
+    else:
+        for tag in tags:
+            r.append(html(tag))
+    return "\n".join(r)
+
+
+def toc_html(site_map, page_name):
+    current_page, parents = find_page(site_map, page_name)
+    toc_root = parents[-2]  # ..., nested_toc, toc, nav
+    return html(toc_tag(current_page, toc_root))
 
 
 class NullWrapper(object):
