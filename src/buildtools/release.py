@@ -306,7 +306,11 @@ def last_modified(path, env=None):
         # before committed
         epoch = time.gmtime(0)
         return epoch
-    return time.strptime(timestamp, "%Y-%m-%d %H:%M:%S +0000")
+    # only really interested in the approx. date, strip timezone
+    timestamp = re.sub("([0-9]{4,4}-[0-9]{2,2}-[0-9]{2,2} " \
+                           "[0-9]{2,2}:[0-9]{2,2}:[0-9]{2,2}) [+-][0-9]{4,4}",
+                       "\\1", timestamp)
+    return time.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
 
 
 def get_env_from_options(options):
