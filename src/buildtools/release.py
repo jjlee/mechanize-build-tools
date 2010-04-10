@@ -286,7 +286,9 @@ def pandoc_cmd(filename, variables=()):
 
 def pandoc(env, filename, output_dir="html", variables=()):
     html = os.path.join(output_dir, trim(filename, ".txt") + ".html")
-    return OutputToFileEnv(env, html).cmd(pandoc_cmd(filename, variables))
+    tidy_py = os.path.join(os.path.dirname(__file__), "tidy.py")
+    return PipeEnv(OutputToFileEnv(env, html),
+                   ["python", tidy_py]).cmd(pandoc_cmd(filename, variables))
 
 def read_file_from_env(env, filename):
     return get_cmd_stdout(env, ["cat", filename])
