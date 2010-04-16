@@ -19,6 +19,9 @@ body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,p,blockquote,th,t
   min-width:400px;
   margin:0 50px;
   padding-left:40px;
+  /* there's a half-abandoned attempt to stick to baseline grid here:
+seems too easy for that to get messed up by font-weight variations
+&c.; due to choice of 14/21 px grid? */
   /* background:#fff url('../images/gridbg.gif'); */
 }
 #main {
@@ -170,9 +173,6 @@ a:hover {
   background-color:#f3ecd2;
 }
 
-/* From pandoc default template CSS.  TODO: this broke baseline grid
-in IE (and think Firefox too, very subtly), learn some haskell &
-output saner HTML. */
 pre.sourceCode { }
 pre.sourceCode span.Normal { }
 pre.sourceCode span.Keyword { color: #007020; font-weight: bold; }
