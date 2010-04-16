@@ -19,7 +19,7 @@ body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,p,blockquote,th,t
   min-width:400px;
   margin:0 50px;
   padding-left:40px;
-  /* background:#fff url('../images/gridbg.gif'); */
+  background:#fff url('../images/gridbg.gif');
 }
 #main {
   clear:both;
@@ -54,7 +54,7 @@ body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,p,blockquote,th,t
   margin-left:10px;
 }
 ol {
-  font-weight:bold;
+  /* font-weight:bold; */
   font-style:italic;
   font-family:verdana, arial, helvetica, sans-serif;
 }
@@ -67,7 +67,7 @@ li p {
   margin:0;
 }
 p.q {
-  font-weight:bold;
+  /* font-weight:bold; */
   font-style:italic;
   font-family:verdana, arial, helvetica, sans-serif;
   margin-top:1.5em;
@@ -109,9 +109,9 @@ p {
   line-height:1.5em;
   margin:1.5em 0;
 }
-p a {
-  font:bold 1em lucida, sans-serif;
-}
+/* p a { */
+/*   font:bold 1em lucida, sans-serif; */
+/* } */
 pre {
   font-family:"Courier New", Courier, monospace;
   line-height:1.5em;
@@ -159,7 +159,7 @@ a {
 }
 a, .thispage {
   text-decoration:none;
-  font-weight:bold;
+  /* font-weight:bold; */
 }
 a:link {
   color:#2d4706;
@@ -182,7 +182,7 @@ in IE (and think Firefox too, very subtly), learn some haskell &
 output saner HTML. */
 pre.sourceCode { }
 pre.sourceCode span.Normal { }
-pre.sourceCode span.Keyword { color: #007020; font-weight: bold; } 
+/* pre.sourceCode span.Keyword { color: #007020; font-weight: bold; }  */
 pre.sourceCode span.DataType { color: #902000; }
 pre.sourceCode span.DecVal { color: #40a070; }
 pre.sourceCode span.BaseN { color: #40a070; }
@@ -191,7 +191,7 @@ pre.sourceCode span.Char { color: #4070a0; }
 pre.sourceCode span.String { color: #4070a0; }
 pre.sourceCode span.Comment { color: #60a0b0; font-style: italic; }
 pre.sourceCode span.Others { color: #007020; }
-pre.sourceCode span.Alert { color: red; font-weight: bold; }
+/* pre.sourceCode span.Alert { color: red; font-weight: bold; } */
 pre.sourceCode span.Function { color: #06287e; }
 pre.sourceCode span.RegionMarker { }
-pre.sourceCode span.Error { color: red; font-weight: bold; }
+/* pre.sourceCode span.Error { color: red; font-weight: bold; } */
