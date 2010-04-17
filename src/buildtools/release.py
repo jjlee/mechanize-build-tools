@@ -52,9 +52,9 @@ def site_map():
     root.add(Page("development", "/mechanize/development.html",
                   title="Development"))
 
-    support.add(Page("Changelog", "/mechanize/docs/ChangeLog.txt"))
     docs = support.add(Page("documentation", "/mechanize/documentation.html",
                             title="Documentation"))
+    support.add(Page("Changelog", "/mechanize/docs/ChangeLog.txt"))
 
     docs.add(Page("faq", "/mechanize/faq.html", title="FAQ"))
     docs.add(Page("doc", "/mechanize/doc.html", title="Handlers etc."))
