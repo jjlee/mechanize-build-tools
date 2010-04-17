@@ -31,6 +31,12 @@ class Page(object):
         self.title = title
         self.children = []
 
+    def iter_pages(self):
+        yield self
+        for child in self.children:
+            for descendant in child.iter_pages():
+                yield descendant
+
     def add(self, page):
         self.children.append(page)
         return page
