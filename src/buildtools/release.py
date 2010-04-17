@@ -40,13 +40,16 @@ def site_map():
     # TODO: shuffle content around into hierarchy something like this
     root = Page("Root", "/")
 
-    home = root.add(Page("Home", "/mechanize/"))
-    download = root.add(Page("Download", "/mechanize/download.html"))
-    support = root.add(Page("Support", "/mechanize/docs/ChangeLog.txt"))
+    home = root.add(Page("index", "/mechanize/", title="Home"))
+    download = root.add(Page("download", "/mechanize/download.html",
+                             title="Download"))
+    support = root.add(Page("support", "/mechanize/support.html",
+                            title="Support"))
     development = root.add(Page("Development", "/mechanize/todo.html"))
 
     support.add(Page("Changelog", "/mechanize/docs/ChangeLog.txt"))
-    docs = support.add(Page("Docs", "/mechanize/docs.html"))
+    docs = support.add(Page("documentation", "/mechanize/documentation.html",
+                            title="Documentation"))
 
     docs.add(Page("mechanize", "/mechanize/"))
     docs.add(Page("GeneralFAQ", "/mechanize/GeneralFAQ.html",
@@ -59,20 +62,20 @@ def site_map():
 
 def find_page(site_map, name):
     if site_map.name == name:
-        return site_map, []
+        return [site_map]
 
     for page in site_map.children:
         try:
-            found, parents = find_page(page, name)
+            ancestor_or_self = find_page(page, name)
         except ValueError:
             continue
 
-        return found, parents + [page]
+        return [site_map] + ancestor_or_self
 
     raise ValueError(name)
 
 
-def toc_link(current_page, page):
+def link(current_page, page):
     if page.url == current_page.url:
         link = tagp("span", [("class", "thispage")], page.title)
     else:
@@ -80,13 +83,22 @@ def toc_link(current_page, page):
     return link
 
 
-def toc_tag(current_page, page):
-    if len(page.children) == 0:
-        return toc_link(current_page, page)
-    else:
-        body = [tag("li", toc_tag(current_page, child))
+def toc_tag(current_page, page, level=0):
+    if level != 0:
+        yield link(current_page, page)
+    if len(page.children) != 0:
+        body = [tag("li", toc_tag(current_page, child, level + 1))
                 for child in page.children]
-        return tagp("ul", [("id", "toc")], *body)
+        attrs = []
+        if level == 0:
+            attrs.append(("id", "toc"))
+        yield tagp("ul", attrs, *body)
+
+
+def nav_tag(current_nav, page):
+    body = [tag("li", link(current_nav, child))
+            for child in page.children]
+    return tagp("ul", [("id", "nav")], *body)
 
 
 def html(tags):
@@ -100,9 +112,18 @@ def html(tags):
 
 
 def toc_html(site_map, page_name):
-    current_page, parents = find_page(site_map, page_name)
-    toc_root = parents[-2]  # ..., nested_toc, toc, nav
+    ancestor_or_self = find_page(site_map, page_name)
+    # ancestor_or_self == root, nav[, toc, nested_toc]
+    current_page = ancestor_or_self[-1]
+    toc_root = ancestor_or_self[1]
     return html(toc_tag(current_page, toc_root))
+
+
+def nav_html(site_map, page_name):
+    ancestor_or_self = find_page(site_map, page_name)
+    nav = ancestor_or_self[1]
+    root = site_map
+    return html(nav_tag(nav, root))
 
 
 class NullWrapper(object):
