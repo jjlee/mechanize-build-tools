@@ -37,25 +37,23 @@ class Page(object):
 
 
 def site_map():
-    # TODO: shuffle content around into hierarchy something like this
     root = Page("Root", "/")
 
-    home = root.add(Page("index", "/mechanize/", title="Home"))
-    download = root.add(Page("download", "/mechanize/download.html",
-                             title="Download"))
+    root.add(Page("index", "/mechanize/", title="Home"))
+    root.add(Page("download", "/mechanize/download.html", title="Download"))
     support = root.add(Page("support", "/mechanize/support.html",
                             title="Support"))
-    development = root.add(Page("Development", "/mechanize/todo.html"))
+    root.add(Page("development", "/mechanize/development.html",
+                  title="Development"))
 
     support.add(Page("Changelog", "/mechanize/docs/ChangeLog.txt"))
     docs = support.add(Page("documentation", "/mechanize/documentation.html",
                             title="Documentation"))
 
-    docs.add(Page("mechanize", "/mechanize/"))
-    docs.add(Page("GeneralFAQ", "/mechanize/GeneralFAQ.html",
-                  title="General FAQs"))
-    docs.add(Page("doc", "/mechanize/doc.html", title="handlers etc."))
-    docs.add(Page("forms", "/mechanize/forms.html"))
+    docs.add(Page("faq", "/mechanize/faq.html", title="FAQ"))
+    docs.add(Page("doc", "/mechanize/doc.html", title="Handlers etc."))
+    docs.add(Page("forms", "/mechanize/forms.html", title="Forms"))
+    docs.add(Page("hints", "/mechanize/hints.html", title="Hints"))
 
     return root
 
@@ -115,8 +113,16 @@ def toc_html(site_map, page_name):
     ancestor_or_self = find_page(site_map, page_name)
     # ancestor_or_self == root, nav[, toc, nested_toc]
     current_page = ancestor_or_self[-1]
-    toc_root = ancestor_or_self[1]
-    return html(toc_tag(current_page, toc_root))
+    nav = ancestor_or_self[1]
+    if len(nav.children) == 0:
+        return ""
+    # Include a link for the parent nav level.  This allows rendering the nav
+    # link (at the top of the page) as text to indicate current nav location,
+    # but also allowing a way to get back to the top-level nav page via the toc
+    # links.
+    subtree_root = Page("", "")
+    subtree_root.add(nav)
+    return html(toc_tag(current_page, subtree_root))
 
 
 def nav_html(site_map, page_name):
