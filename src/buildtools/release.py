@@ -87,15 +87,15 @@ def link(current_page, page):
     return link
 
 
-def toc_tag(current_page, page, level=0):
+def subnav_tag(current_page, page, level=0):
     if level != 0:
         yield link(current_page, page)
     if len(page.children) != 0:
-        body = [tag("li", toc_tag(current_page, child, level + 1))
+        body = [tag("li", subnav_tag(current_page, child, level + 1))
                 for child in page.children]
         attrs = []
         if level == 0:
-            attrs.append(("id", "toc"))
+            attrs.append(("id", "subnav"))
         yield tagp("ul", attrs, *body)
 
 
@@ -115,20 +115,20 @@ def html(tags):
     return "\n".join(r)
 
 
-def toc_html(site_map, page_name):
+def subnav_html(site_map, page_name):
     ancestor_or_self = find_page(site_map, page_name)
-    # ancestor_or_self == root, nav[, toc, nested_toc]
+    # ancestor_or_self == root, nav[, subnav, subsubnav]
     current_page = ancestor_or_self[-1]
     nav = ancestor_or_self[1]
     if len(nav.children) == 0:
         return ""
     # Include a link for the parent nav level.  This allows rendering the nav
     # link (at the top of the page) as text to indicate current nav location,
-    # but also allowing a way to get back to the top-level nav page via the toc
-    # links.
+    # but also allowing a way to get back to the top-level nav page via the
+    # subnav links.
     subtree_root = Page("", "")
     subtree_root.add(nav)
-    return html(toc_tag(current_page, subtree_root))
+    return html(subnav_tag(current_page, subtree_root))
 
 
 def nav_html(site_map, page_name):
@@ -314,7 +314,8 @@ def pandoc_cmd(filename, variables=()):
     return ["pandoc",
             "--smart",
             "--standalone",
-            "--template", "html.template"] + variables + [filename]
+            "--template", "html.template",
+            "--toc"] + variables + [filename]
 
 
 def pandoc(env, filename, output_dir="html", variables=()):

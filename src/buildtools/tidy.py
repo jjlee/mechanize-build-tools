@@ -38,6 +38,14 @@ def collapse_normal(tree):
         span.drop_tag()
 
 
+def remove_toc_backlinks(tree):
+    # <h2><a href="#TOC">Heading</a></h2> --> <h2>Heading</h2>
+    # because:
+    #  * That's what the back button is for!  No need for a link.
+    for a in tree.xpath("//a[@href='#TOC']"):
+        a.drop_tag()
+
+
 def remove_emacs_comments(tree):
     # remove stuff like this:
     # <!-- Local Variables: -->
@@ -83,6 +91,7 @@ def main(args):
     collapse_p_span(tree)
     collapse_pre_code(tree)
     collapse_normal(tree)
+    remove_toc_backlinks(tree)
     remove_emacs_comments(tree)
     # serialize in non-bizarre fashion: don't write newlines inside tags,
     # unlike pandoc :-)

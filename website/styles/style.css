@@ -52,7 +52,7 @@ seems too easy for that to get messed up by font-weight variations
   margin:1.3125em 0;
   overflow:auto;
 }
-#toc li {
+#subnav li, #TOC li {
   list-style-type:none;
   margin-left:10px;
 }
@@ -75,18 +75,23 @@ p.q {
   font-family:verdana, arial, helvetica, sans-serif;
   margin-top:1.5em;
 }
-#toc a, #toc .thispage {
+#subnav a, #subnav .thispage,
+#TOC a, #TOC .thispage {
   font-family:lucida, sans-serif;
   font-weight:600;
 }
-#toc {
+#subnav, #TOC {
   float:right;
+  clear:right;
   width:162px;
   padding:10px 20px;
   background-color:#eee;
   margin-left:3em;
   margin-bottom:3em;
   border-left:thick solid #2d4706;
+}
+#TOC {
+  border-left:none;
 }
 h1 {
   padding-left:10px;
