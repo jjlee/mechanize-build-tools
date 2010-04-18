@@ -45,21 +45,19 @@ class Page(object):
 def site_map():
     root = Page("Root", "/")
 
-    root.add(Page("index", "/mechanize/", title="Home"))
-    root.add(Page("download", "/mechanize/download.html", title="Download"))
-    support = root.add(Page("support", "/mechanize/support.html",
-                            title="Support"))
-    root.add(Page("development", "/mechanize/development.html",
-                  title="Development"))
+    root.add(Page("index", "./", title="Home"))
+    root.add(Page("download", "download.html", title="Download"))
+    support = root.add(Page("support", "support.html", title="Support"))
+    root.add(Page("development", "development.html", title="Development"))
 
-    docs = support.add(Page("documentation", "/mechanize/documentation.html",
+    docs = support.add(Page("documentation", "documentation.html",
                             title="Documentation"))
-    support.add(Page("Changelog", "/mechanize/docs/ChangeLog.txt"))
+    support.add(Page("Changelog", "ChangeLog.txt"))
 
-    docs.add(Page("faq", "/mechanize/faq.html", title="FAQ"))
-    docs.add(Page("doc", "/mechanize/doc.html", title="Handlers etc."))
-    docs.add(Page("forms", "/mechanize/forms.html", title="Forms"))
-    docs.add(Page("hints", "/mechanize/hints.html", title="Hints"))
+    docs.add(Page("faq", "faq.html", title="FAQ"))
+    docs.add(Page("doc", "doc.html", title="Handlers etc."))
+    docs.add(Page("forms", "forms.html", title="Forms"))
+    docs.add(Page("hints", "hints.html", title="Hints"))
 
     return root
 
