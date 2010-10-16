@@ -31,10 +31,6 @@ import build_log
 
 
 def main(argv):
-    # Ubuntu Gutsy's version of python-lxml is buggy and sometimes
-    # segfaults during GC.  TODO: upgrade and remove this workaround.
-    gc.disable()
-
     parser = optparse.OptionParser(__doc__.strip())
     parser.add_option(
         "--short", default=False, dest="short", action="store_true",
