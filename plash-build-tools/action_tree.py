@@ -110,9 +110,14 @@ def flatten_tree(action, name=None, path=[]):
                 yield result
 
 
-def print_tree(action, stream):
-    for index, act in enumerate(flatten_tree(action)):
-        stream.write("%s%i: %s\n" % ("   " * act.get_level(), index, act.name))
+def print_node(action, index, stream):
+    stream.write("%s%i: %s\n" %
+                 ("   " * action.get_level(), index, action.name))
+
+
+def print_tree(actions, stream):
+    for index, act in enumerate(actions):
+        print_node(act, index, stream)
 
 
 def get_one(lst):
@@ -144,21 +149,22 @@ def negative_filter_tree(action, label):
     return action
 
 
-def action_main(action, args, stdout=sys.stdout,
-                log=build_log.DummyLogWriter()):
-    parser = optparse.OptionParser()
+def add_options(parser):
     parser.add_option("-f", "--filter", dest="filters", default=[],
                       action="append", help="Filter to a subset of the tree")
-    parser.add_option("-t", "--start-at", dest="start_at", default=[],
-                      action="append", help="Start at the given action")
-    options, args = parser.parse_args(args)
+    parser.add_option("--print", dest="print_tree", action="store_true",
+                      default=False)
+
+
+def action_main_(action, options, args, stdout=sys.stdout,
+                 log=build_log.DummyLogWriter()):
     for filter_name in options.filters:
         if filter_name.startswith("-"):
             action = negative_filter_tree(action, filter_name[1:])
         else:
             action = filter_tree(action, filter_name)
-    if len(args) == 0 and len(options.start_at) == 0:
-        print_tree(action, stdout)
+    if len(args) == 0:
+        print_tree(flatten_tree(action), stdout)
     else:
         flattened = list(flatten_tree(action))
         by_index = {}
@@ -166,9 +172,36 @@ def action_main(action, args, stdout=sys.stdout,
             act.index = index
             for name in list(act.get_names()) + [str(index)]:
                 by_index.setdefault(name, []).append(act)
+        def action_range(text):
+            start, sep, end = text.partition(":")
+            if start == "":
+                start_action = flattened[0]
+            else:
+                start_action = get_one(by_index[start])
+            if end == "":
+                end_action = flattened[-1]
+            else:
+                end_action = get_one(by_index[end])
+            return start_action, end_action
         for arg in args:
-            get_one(by_index[arg]).action(log)
-        for arg in options.start_at:
-            start_action = get_one(by_index[arg])
-            for act in flattened[start_action.index:]:
-                act.run_leaf(log)
+            if ":" in arg:
+                start_action, end_action = action_range(arg)
+                actions = flattened[start_action.index:end_action.index + 1]
+                if options.print_tree:
+                    print_tree(actions, stdout)
+                else:
+                    for action in actions:
+                        action.run_leaf(log)
+            else:
+                if options.print_tree:
+                    print_tree(flattened, stdout)
+                else:
+                    get_one(by_index[arg]).action(log)
+
+
+def action_main(action, args, stdout=sys.stdout,
+                log=build_log.DummyLogWriter()):
+    parser = optparse.OptionParser()
+    add_options(parser)
+    options, remaining_args = parser.parse_args(args)
+    action_main_(action, options, remaining_args, stdout, log)

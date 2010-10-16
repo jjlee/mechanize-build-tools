@@ -140,9 +140,9 @@ class ActionTreeTest(unittest.TestCase):
         self.assertEquals(pop_all(example.got), ["foo"])
         action_tree.action_main(example.all_steps, ["3"])
         self.assertEquals(pop_all(example.got), ["bar"])
-        action_tree.action_main(example.all_steps, ["-t", "3"])
+        action_tree.action_main(example.all_steps, ["3:"])
         self.assertEquals(pop_all(example.got), ["bar", "baz", "qux", "quux"])
-        action_tree.action_main(example.all_steps, ["-t", "5"])
+        action_tree.action_main(example.all_steps, ["5:"])
         self.assertEquals(pop_all(example.got), ["qux", "quux"])
         # By name
         action_tree.action_main(example.all_steps, ["subtree1"])
@@ -152,9 +152,9 @@ class ActionTreeTest(unittest.TestCase):
         action_tree.action_main(example.all_steps, ["bar"])
         self.assertEquals(pop_all(example.got), ["bar"])
 
-        action_tree.action_main(example.all_steps, ["-t", "bar"])
+        action_tree.action_main(example.all_steps, ["bar:"])
         self.assertEquals(pop_all(example.got), ["bar", "baz", "qux", "quux"])
-        action_tree.action_main(example.all_steps, ["-t", "subtree2"])
+        action_tree.action_main(example.all_steps, ["subtree2:"])
         self.assertEquals(pop_all(example.got), ["qux", "quux"])
 
         action_tree.action_main(example.all_steps, ["-f", "subtree1", "0"])
@@ -168,22 +168,22 @@ class ActionTreeTest(unittest.TestCase):
         action_tree.action_main(tree, [], stdout=stream)
         assert_equals(stream.getvalue(), """\
 0: all_steps
-  1: subtree1
-    2: foo
-    3: bar
-    4: baz
-  5: subtree2
-    6: qux
-    7: quux
+   1: subtree1
+      2: foo
+      3: bar
+      4: baz
+   5: subtree2
+      6: qux
+      7: quux
 """)
 
         stream = StringIO.StringIO()
         action_tree.action_main(tree, ["-f", "subtree2"], stdout=stream)
         assert_equals(stream.getvalue(), """\
 0: all_steps
-  1: subtree2
-    2: qux
-    3: quux
+   1: subtree2
+      2: qux
+      3: quux
 """)
 
     def test_logging(self):
