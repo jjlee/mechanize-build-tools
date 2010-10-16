@@ -243,6 +243,7 @@ TypeError: unparse_version() takes exactly 1 argument (0 given)
 class Version(object):
 
     def __init__(self, version_tuple):
+        assert isinstance(version_tuple, tuple)
         self.tuple = version_tuple
 
     def __lt__(self, other):
