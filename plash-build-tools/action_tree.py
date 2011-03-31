@@ -92,7 +92,11 @@ class ActionInContext(object):
 
     def run_leaf(self, log):
         if not isinstance(self.action, ActionTreeNode):
-            self.action(log)
+            node = self.action
+            for name in reversed(self.path):
+                node = make_node([node], name)
+            node = make_node([node], "")
+            node(log)
 
     def get_names(self):
         for i in range(len(self.path)):
