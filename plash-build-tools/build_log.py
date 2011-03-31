@@ -168,6 +168,67 @@ class LogWriter(object):
         self._node.add_attr("result", str(result))
 
 
+class Ansi16Color(object):
+
+    def __init__(self, foreground_color, bright):
+        self._fg_color = foreground_color
+        self._bright = bright
+
+    def __str__(self):
+        return "%s(%s, %s)" % (self.__class__.__name__,
+                               self._fg_color, self._bright)
+
+    def terminal_code(self):
+        if self._fg_color is None:
+            fg_code = 0
+        else:
+            fg_code = self._fg_color + 30
+        if self._bright is None:
+            prefix_code = ""
+        elif self._bright:
+            prefix_code = "1;"
+        else:
+            prefix_code = "0;"
+        return "\033[%s%sm" % (prefix_code, fg_code)
+
+
+class PrintTitlesLogWriter(object):
+
+    def __init__(self, stream, delegate, path=()):
+        self._stream = stream
+        self._delegate = delegate
+        self._path = list(path)
+        if stream.isatty():
+            # bright red
+            def stand_out_text(text):
+                return (Ansi16Color(1, True).terminal_code() +
+                        text +
+                        Ansi16Color(None, False).terminal_code())
+        else:
+            stand_out_text = lambda text: text
+        self._stand_out_text = stand_out_text
+
+    def start(self):
+        title = " > ".join([self._stand_out_text(name) for name in self._path])
+        self._stream.write(title)
+        self._stream.write("\n")
+        self._delegate.start()
+
+    def message(self, message):
+        self._delegate.message(message)
+
+    def child_log(self, name, do_start=True):
+        child_delegate = self._delegate.child_log(name, do_start)
+        child_path = self._path + [name]
+        return PrintTitlesLogWriter(self._stream, child_delegate, child_path)
+
+    def make_file(self):
+        return self._delegate.make_file()
+
+    def finish(self, result):
+        self._delegate.finish(result)
+
+
 class DummyLogWriter(object):
 
     def start(self):
