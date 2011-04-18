@@ -1,9 +1,11 @@
 import collections
 import doctest
+import email.mime.text
 import os
 import pipes
 import re
 import subprocess
+import smtplib
 import sys
 import time
 import xml.sax.saxutils
@@ -323,8 +325,22 @@ def pandoc(env, filename, output_dir="html", variables=()):
     return PipeEnv(OutputToFileEnv(env, html),
                    ["python", tidy_py]).cmd(pandoc_cmd(filename, variables))
 
+
 def read_file_from_env(env, filename):
     return get_cmd_stdout(env, ["cat", filename])
+
+
+def write_file_to_env(env, filename, data):
+    env.cmd(cmd_env.write_file_cmd(filename, data))
+
+
+def append_file_to_env(env, filename, data):
+    env.cmd(cmd_env.append_file_cmd(filename, data))
+
+
+def install(env, filename, data):
+    env.cmd(["mkdir", "-p", os.path.dirname(filename)])
+    write_file_to_env(env, filename, data)
 
 
 def ensure_installed(env, as_root_env, package_name, ppa=None):
@@ -353,6 +369,46 @@ def rm_rf_cmd(dir_path):
     return ["rm", "-rf", "--one-file-system", dir_path]
 
 
+def ensure_trailing_slash(path):
+    return path.rstrip("/") + "/"
+
+
+def clean_dir(env, path):
+    env.cmd(rm_rf_cmd(path))
+    env.cmd(["mkdir", "-p", path])
+
+
+def is_git_repository(path):
+    return os.path.exists(os.path.join(path, ".git"))
+
+
+def ensure_unmodified(env, path):
+    # raise if working tree differs from HEAD
+    CwdEnv(env, path).cmd(["git", "diff", "--exit-code", "HEAD"])
+
+
+def add_to_path_cmd(value):
+    set_path_script = """\
+if [ -n "$PATH" ]
+  then
+    export PATH="$PATH":%(value)s
+  else
+    export PATH=%(value)s
+fi
+exec "$@"
+""" % dict(value=value)
+    return ["sh", "-c", set_path_script, "inline_script"]
+
+
+def get_home_dir(env):
+    return trim(get_cmd_stdout(env, ["sh", "-c", "echo $HOME"]), "\n")
+
+
+def get_user_env(as_root, username):
+    as_user = cmd_env.PrefixCmdEnv(["sudo", "-u", "ubuntu", "-H"], as_root)
+    return CwdEnv(as_user, get_home_dir(as_user))
+
+
 # for use from doc templates
 def last_modified(path, env=None):
     if env is None:
@@ -368,6 +424,20 @@ def last_modified(path, env=None):
                            "[0-9]{2,2}:[0-9]{2,2}:[0-9]{2,2}) [+-][0-9]{4,4}",
                        "\\1", timestamp)
     return time.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+
+
+def send_email(from_address, to_address, subject, body):
+    msg = email.mime.text.MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = from_address
+    msg['To'] = to_address
+    # print "from_address %r" % from_address
+    # print "to_address %r" % to_address
+    # print "msg.as_string():\n%s" % msg.as_string()
+    s = smtplib.SMTP()
+    s.connect()
+    s.sendmail(from_address, [to_address], msg.as_string())
+    s.quit()
 
 
 def get_env_from_options(options):
