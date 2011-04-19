@@ -94,11 +94,11 @@ def in_dir(dir_path):
 
 
 def write_file_cmd(filename, data):
-    return ["sh", "-c", 'echo -n "$1" >"$2"', "inline_script", data, filename]
+    return ["bash", "-c", 'echo -n "$1" >"$2"', "inline_script", data, filename]
 
 
 def append_file_cmd(filename, data):
-    return ["sh", "-c", 'echo -n "$1" >>"$2"', "inline_script", data, filename]
+    return ["bash", "-c", 'echo -n "$1" >>"$2"', "inline_script", data, filename]
 
 
 def clean_environ_except_home_env(env):

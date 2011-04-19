@@ -16,6 +16,7 @@
 # 02110-1301, USA.
 
 import os
+import tempfile
 import unittest
 
 import cmd_env
@@ -40,6 +41,20 @@ class IsPathBelowTest(unittest.TestCase):
                  ("/foo/", "/foo/bar", True)]
         for parent, child, is_below in cases:
             self.assertEquals(cmd_env.is_path_below(parent, child), is_below)
+
+
+class WriteFileToEnvTest(unittest.TestCase):
+
+    def test_backslash_escapes_are_not_interpreted(self):
+        filename = tempfile.mktemp()
+        try:
+            backslash_escaped = "\\r"
+            cmd = cmd_env.write_file_cmd(filename, backslash_escaped)
+            env = cmd_env.BasicEnv()
+            env.cmd(cmd)
+            self.assertEqual(cmd_env.read_file(filename), backslash_escaped)
+        finally:
+            os.remove(filename)
 
 
 if __name__ == "__main__":
