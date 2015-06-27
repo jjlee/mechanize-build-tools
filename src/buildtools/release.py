@@ -285,15 +285,16 @@ def shell_escape(args):
     return " ".join(pipes.quote(arg) for arg in args)
 
 
-class PipeEnv(object):
+def output_to_file(path):
+    return ["sh", "-c", 'out="$1" && shift && exec "$@" > "$out" 2>&1',
+            "inline_script"]
 
-    def __init__(self, env, args):
-        self._env = env
-        self._args = args
 
-    def cmd(self, args, **kwargs):
-        pipeline = '%s | %s' % (shell_escape(args), shell_escape(self._args))
-        return self._env.cmd(["sh", "-c", pipeline])
+def pipe_cmd(cmd):
+    return ["sh", "-c", 'exec "$@" | %s' % shell_escape(cmd), "inline_script"]
+
+
+PipeEnv = make_env_maker(pipe_cmd)
 
 
 def trim(text, suffix):
@@ -405,7 +406,7 @@ def get_home_dir(env):
 
 
 def get_user_env(as_root, username):
-    as_user = cmd_env.PrefixCmdEnv(["sudo", "-u", "ubuntu", "-H"], as_root)
+    as_user = cmd_env.PrefixCmdEnv(["sudo", "-u", username, "-H"], as_root)
     return CwdEnv(as_user, get_home_dir(as_user))
 
 
@@ -449,12 +450,20 @@ def get_env_from_options(options):
     return env
 
 
+def _add_basic_env_options(add_option):
+    add_option("-v", "--verbose", action="store_true")
+    add_option("-n", "--pretend", action="store_true",
+               help=("run commands in a do-nothing environment.  "
+                     "Note that not all actions do their work by "
+                     "running a command."))
+
+
 def add_basic_env_options(parser):
-    parser.add_option("-v", "--verbose", action="store_true")
-    parser.add_option("-n", "--pretend", action="store_true",
-                      help=("run commands in a do-nothing environment.  "
-                            "Note that not all actions do their work by "
-                            "running a command."))
+    _add_basic_env_options(parser.add_option)
+
+
+def add_basic_env_arguments(parser):
+    _add_basic_env_options(parser.add_argument)
 
 
 if __name__ == "__main__":
