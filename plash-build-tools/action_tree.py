@@ -153,11 +153,19 @@ def negative_filter_tree(action, label):
     return action
 
 
+def _add_options(add_option):
+    add_option("-f", "--filter", dest="filters", default=[],
+               action="append", help="Filter to a subset of the tree")
+    add_option("--print", dest="print_tree", action="store_true",
+               default=False)
+
+
 def add_options(parser):
-    parser.add_option("-f", "--filter", dest="filters", default=[],
-                      action="append", help="Filter to a subset of the tree")
-    parser.add_option("--print", dest="print_tree", action="store_true",
-                      default=False)
+    _add_options(parser.add_option)
+
+
+def add_arguments(parser):
+    _add_options(parser.add_argument)
 
 
 def action_main_(action, options, args, stdout=sys.stdout,
