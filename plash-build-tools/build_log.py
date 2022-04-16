@@ -472,10 +472,10 @@ def warn_failures(logs, stamp_time):
     for log in logs:
         if log_has_failed(log.get_xml()):
             if log.get_timestamp() > stamp_time:
-                print "failed"
+                print("failed")
                 subprocess.call("beep -l 10 -f 1000", shell=True)
         return
-    print "no completed logs"
+    print("no completed logs")
 
 
 def wrap_body(body):

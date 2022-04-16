@@ -86,7 +86,7 @@ class PrefixCmdEnv(object):
 
     def cmd(self, args, **kwargs):
         return self._env.cmd(self._prefix_cmd + args, **kwargs)
-        
+
 
 def in_dir(dir_path):
     return ["sh", "-c", 'cd "$1" && shift && exec "$@"',
@@ -337,7 +337,7 @@ class Process(object):
         try:
             args = read_file(
                 os.path.join("/proc/%i/cmdline" % pid)).split("\0")
-        except (OSError, IOError), e:
+        except (OSError, IOError) as e:
             if e.errno == errno.ENOENT:
                 # The process may have exited
                 args = None
@@ -351,7 +351,7 @@ class Process(object):
         self._cmdline = args
         try:
             self._root_dir = os.readlink(os.path.join("/proc/%i/root" % pid))
-        except (OSError, IOError), e:
+        except (OSError, IOError) as e:
             if e.errno == errno.ENOENT:
                 # * If the process terminates, /proc/$pid will not exist
                 # * readlink can fail with ENOENT even if /proc/$pid/root shows
@@ -376,12 +376,12 @@ class Process(object):
     def kill(self, signal_number):
         """Send the specified signal to the specified process
 
-        Returns True if the signal was sent succesfully and False if the 
+        Returns True if the signal was sent succesfully and False if the
         specified process did not exist at the time of the attempt.
         """
         try:
             os.kill(self._pid, signal_number)
-        except OSError, e:
+        except OSError as e:
             if e.errno == errno.ESRCH:
                 return False
             else:
@@ -403,7 +403,7 @@ def list_processes():
 def find_chrooted(chroot):
     chroot_realpath = os.path.realpath(chroot)
     for proc in list_processes():
-        if (proc.get_root_dir() is not None 
+        if (proc.get_root_dir() is not None
             and is_path_below(chroot_realpath, proc.get_root_dir())):
             yield proc
 
@@ -416,8 +416,8 @@ def kill_chrooted(chroot):
             break
         for proc in procs:
             if proc.get_pid() not in found:
-                print "killing process running in chroot:", \
-                      proc.get_pid(), proc.get_cmdline()
+                print("killing process running in chroot:",
+                      proc.get_pid(), proc.get_cmdline())
             found.add(proc.get_pid())
             proc.kill(signal.SIGKILL)
         time.sleep(0.5)
